@@ -451,8 +451,11 @@ const buildRunProperties = (attributes) => {
 };
 
 const buildRun = async (vNode, attributes, docxDocumentInstance) => {
+
   const runFragment = fragment({ namespaceAlias: { w: namespaces.w } }).ele('@w', 'r');
   const runPropertiesFragment = buildRunProperties(cloneDeep(attributes));
+
+
 
   // case where we have recursive spans representing font changes
   if (isVNode(vNode) && vNode.tagName === 'span') {
@@ -582,6 +585,7 @@ const buildRun = async (vNode, attributes, docxDocumentInstance) => {
     const textFragment = buildTextElement(vNode.text);
     runFragment.import(textFragment);
   } else if (attributes && attributes.type === 'picture') {
+
     let response = null;
 
     const base64Uri = decodeURIComponent(vNode.properties.src);
@@ -605,11 +609,18 @@ const buildRun = async (vNode, attributes, docxDocumentInstance) => {
       );
 
       attributes.inlineOrAnchored = true;
+
+      if((vNode.properties.style && vNode.properties.style.float) || vNode.properties.align){
+        attributes.inlineOrAnchored = false;
+        attributes.anchoredType = (vNode.properties.style && vNode.properties.style.float) || vNode.properties.align
+      }
+
       attributes.relationshipId = documentRelsId;
       attributes.id = response.id;
       attributes.fileContent = response.fileContent;
       attributes.fileNameWithExtension = response.fileNameWithExtension;
     }
+
 
     const { type, inlineOrAnchored, ...otherAttributes } = attributes;
     // eslint-disable-next-line no-use-before-define
@@ -2037,10 +2048,14 @@ const buildWrapSquare = () =>
   fragment({ namespaceAlias: { wp: namespaces.wp } })
     .ele('@wp', 'wrapSquare')
     .att('wrapText', 'bothSides')
-    .att('distB', '228600')
-    .att('distT', '228600')
-    .att('distL', '228600')
-    .att('distR', '228600')
+    // .att('distB', '228600')
+    // .att('distT', '228600')
+    // .att('distL', '228600')
+    // .att('distR', '228600')
+    .att('distB', '0')
+    .att('distT', '0')
+    .att('distL', '0')
+    .att('distR', '0')
     .up();
 
 // eslint-disable-next-line no-unused-vars
@@ -2074,23 +2089,24 @@ const buildPositionV = () =>
     .up()
     .up();
 
-const buildPositionH = () =>
+const buildPositionH = ({anchoredType = 'left'}) =>
   fragment({ namespaceAlias: { wp: namespaces.wp } })
     .ele('@wp', 'positionH')
     .att('relativeFrom', 'column')
-    .ele('@wp', 'posOffset')
-    .txt('19050')
+    .ele('@wp', 'align')
+    .txt(anchoredType === 'left' ? 'left' : 'right')
     .up()
     .up();
 
 const buildSimplePos = () =>
   fragment({ namespaceAlias: { wp: namespaces.wp } })
     .ele('@wp', 'simplePos')
-    .att('x', '0')
-    .att('y', '0')
+    .att('x', '10000')
+    .att('y', '10000')
     .up();
 
 const buildAnchoredDrawing = (graphicType, attributes) => {
+  // console.log('buildAnchoredDrawing', attributes.anchoredType)
   const anchoredDrawingFragment = fragment({ namespaceAlias: { wp: namespaces.wp } })
     .ele('@wp', 'anchor')
     .att('distB', '0')
@@ -2106,9 +2122,9 @@ const buildAnchoredDrawing = (graphicType, attributes) => {
   // Even though simplePos isnt supported by Word 2007 simplePos is required.
   const simplePosFragment = buildSimplePos();
   anchoredDrawingFragment.import(simplePosFragment);
-  const positionHFragment = buildPositionH();
+  const positionHFragment = buildPositionH(attributes);
   anchoredDrawingFragment.import(positionHFragment);
-  const positionVFragment = buildPositionV();
+  const positionVFragment = buildPositionV(attributes);
   anchoredDrawingFragment.import(positionVFragment);
   const extentFragment = buildExtent({ width: attributes.width, height: attributes.height });
   anchoredDrawingFragment.import(extentFragment);
@@ -2130,6 +2146,7 @@ const buildAnchoredDrawing = (graphicType, attributes) => {
 };
 
 const buildInlineDrawing = (graphicType, attributes) => {
+  console.log('buildInlineDrawing')
   const inlineDrawingFragment = fragment({ namespaceAlias: { wp: namespaces.wp } })
     .ele('@wp', 'inline')
     .att('distB', '0')
