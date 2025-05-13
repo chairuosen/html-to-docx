@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.10.0](https://github.com/chairuosen/html-to-docx/compare/v1.9.0...v1.10.0) (2025-05-13)
+
+
+### Features
+
+* change name to publish ([370dd65](https://github.com/chairuosen/html-to-docx/commit/370dd65145ca851b9fb9e4fd75d68b7958cd668d))
+
+
+### Bug Fixes
+
+* getMIMETypes ([a52df4e](https://github.com/chairuosen/html-to-docx/commit/a52df4e1601b08afadec56c25bb38ed59e07eafc))
+
 ## 1.9.0 (2025-05-13)
 
 
