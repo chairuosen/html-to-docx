@@ -10,7 +10,6 @@ import isVText from 'virtual-dom/vnode/is-vtext';
 import colorNames from 'color-name';
 import { cloneDeep } from 'lodash';
 import imageToBase64 from 'image-to-base64';
-import mimeTypes from 'mime-types';
 import sizeOf from 'image-size';
 
 import namespaces from '../namespaces';
@@ -43,7 +42,7 @@ import {
 } from '../utils/unit-conversion';
 // FIXME: remove the cyclic dependency
 // eslint-disable-next-line import/no-cycle
-import { buildImage, buildList } from './render-document-file';
+import { buildImage, buildList, getMIMETypes } from './render-document-file';
 import {
   defaultFont,
   hyperlinkType,
@@ -451,11 +450,8 @@ const buildRunProperties = (attributes) => {
 };
 
 const buildRun = async (vNode, attributes, docxDocumentInstance) => {
-
   const runFragment = fragment({ namespaceAlias: { w: namespaces.w } }).ele('@w', 'r');
   const runPropertiesFragment = buildRunProperties(cloneDeep(attributes));
-
-
 
   // case where we have recursive spans representing font changes
   if (isVNode(vNode) && vNode.tagName === 'span') {
@@ -585,7 +581,6 @@ const buildRun = async (vNode, attributes, docxDocumentInstance) => {
     const textFragment = buildTextElement(vNode.text);
     runFragment.import(textFragment);
   } else if (attributes && attributes.type === 'picture') {
-
     let response = null;
 
     const base64Uri = decodeURIComponent(vNode.properties.src);
@@ -610,9 +605,10 @@ const buildRun = async (vNode, attributes, docxDocumentInstance) => {
 
       attributes.inlineOrAnchored = true;
 
-      if((vNode.properties.style && vNode.properties.style.float) || vNode.properties.align){
+      if ((vNode.properties.style && vNode.properties.style.float) || vNode.properties.align) {
         attributes.inlineOrAnchored = false;
-        attributes.anchoredType = (vNode.properties.style && vNode.properties.style.float) || vNode.properties.align
+        attributes.anchoredType =
+          (vNode.properties.style && vNode.properties.style.float) || vNode.properties.align;
       }
 
       attributes.relationshipId = documentRelsId;
@@ -620,7 +616,6 @@ const buildRun = async (vNode, attributes, docxDocumentInstance) => {
       attributes.fileContent = response.fileContent;
       attributes.fileNameWithExtension = response.fileNameWithExtension;
     }
-
 
     const { type, inlineOrAnchored, ...otherAttributes } = attributes;
     // eslint-disable-next-line no-use-before-define
@@ -997,8 +992,8 @@ const buildParagraph = async (vNode, attributes, docxDocumentInstance) => {
               console.warning(`skipping image download and conversion due to ${error}`);
             });
 
-            if (base64String && mimeTypes.lookup(imageSource)) {
-              childVNode.properties.src = `data:${mimeTypes.lookup(
+            if (base64String && getMIMETypes(imageSource)) {
+              childVNode.properties.src = `data:${getMIMETypes(
                 imageSource
               )};base64, ${base64String}`;
             } else {
@@ -1052,8 +1047,8 @@ const buildParagraph = async (vNode, attributes, docxDocumentInstance) => {
           console.warning(`skipping image download and conversion due to ${error}`);
         });
 
-        if (base64String && mimeTypes.lookup(imageSource)) {
-          vNode.properties.src = `data:${mimeTypes.lookup(imageSource)};base64, ${base64String}`;
+        if (base64String && getMIMETypes(imageSource)) {
+          vNode.properties.src = `data:${getMIMETypes(imageSource)};base64, ${base64String}`;
         } else {
           paragraphFragment.up();
 
@@ -2089,7 +2084,7 @@ const buildPositionV = () =>
     .up()
     .up();
 
-const buildPositionH = ({anchoredType = 'left'}) =>
+const buildPositionH = ({ anchoredType = 'left' }) =>
   fragment({ namespaceAlias: { wp: namespaces.wp } })
     .ele('@wp', 'positionH')
     .att('relativeFrom', 'column')
@@ -2146,7 +2141,6 @@ const buildAnchoredDrawing = (graphicType, attributes) => {
 };
 
 const buildInlineDrawing = (graphicType, attributes) => {
-  console.log('buildInlineDrawing')
   const inlineDrawingFragment = fragment({ namespaceAlias: { wp: namespaces.wp } })
     .ele('@wp', 'inline')
     .att('distB', '0')

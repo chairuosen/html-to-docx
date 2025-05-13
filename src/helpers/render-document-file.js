@@ -24,6 +24,10 @@ const convertHTML = HTMLToVDOM({
   VText,
 });
 
+export function getMIMETypes(arg) {
+  return mimeTypes.lookup((arg || '').replace(/~.*$/g, ''));
+}
+
 // eslint-disable-next-line consistent-return, no-shadow
 export const buildImage = async (docxDocumentInstance, vNode, maximumWidth = null) => {
   let response = null;
@@ -37,7 +41,7 @@ export const buildImage = async (docxDocumentInstance, vNode, maximumWidth = nul
       });
 
       if (base64String) {
-        base64Uri = `data:${mimeTypes.lookup(imageSource)};base64, ${base64String}`;
+        base64Uri = `data:${getMIMETypes(imageSource)};base64, ${base64String}`;
       }
     } else {
       base64Uri = decodeURIComponent(vNode.properties.src);
