@@ -29,7 +29,6 @@ import {
   percentageRegex,
   pointRegex,
   pointToHIP,
-  HIPToTWIP,
   pointToTWIP,
   pixelToHIP,
   pixelToTWIP,
@@ -210,25 +209,6 @@ const buildTextElement = (text) =>
     .up();
 
 // eslint-disable-next-line consistent-return
-const fixupLineHeight = (lineHeight, fontSize) => {
-  // FIXME: If line height is anything other than a number
-  // eslint-disable-next-line no-restricted-globals
-  if (!isNaN(lineHeight)) {
-    if (fontSize) {
-      const actualLineHeight = +lineHeight * fontSize;
-
-      return HIPToTWIP(actualLineHeight);
-    } else {
-      // 240 TWIP or 12 point is default line height
-      return +lineHeight * 240;
-    }
-  } else {
-    // 240 TWIP or 12 point is default line height
-    return 240;
-  }
-};
-
-// eslint-disable-next-line consistent-return
 const fixupFontSize = (fontSizeString) => {
   if (pointRegex.test(fontSizeString)) {
     const matchedParts = fontSizeString.match(pointRegex);
@@ -239,6 +219,18 @@ const fixupFontSize = (fontSizeString) => {
     // convert pixels to half point
     return pixelToHIP(matchedParts[1]);
   }
+};
+
+// eslint-disable-next-line consistent-return
+const fixupLineHeight = (lineHeight, fontSize) => {
+  // eslint-disable-next-line no-restricted-globals
+  let n = isNaN(lineHeight) ? fixupFontSize(lineHeight) / fontSize : lineHeight;
+  const base = 240;
+  // eslint-disable-next-line no-restricted-globals
+  if (isNaN(n)) {
+    n = 1;
+  }
+  return +n * base;
 };
 
 // eslint-disable-next-line consistent-return
