@@ -20,7 +20,8 @@
     "prettier:check": "prettier --check '**/*.{js}'",
     "validate": "run-s lint prettier:check",
     "build": "rollup -c",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "publish": "npm publish --registry=https://registry.npmjs.org/"
   },
   "repository": {
     "type": "git",
