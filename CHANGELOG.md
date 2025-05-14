@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.2](https://github.com/chairuosen/html-to-docx/compare/v1.10.1...v1.10.2) (2025-05-14)
+
+
+### Bug Fixes
+
+* fixupLineHeight ([f8e9993](https://github.com/chairuosen/html-to-docx/commit/f8e99935ee3113795817f7a25a1993660ef438c0))
+* textIndent ([a4fd056](https://github.com/chairuosen/html-to-docx/commit/a4fd0566c54de536bf0a3e021e65b74650fda07c))
+
 ### [1.10.1](https://github.com/chairuosen/html-to-docx/compare/v1.10.0...v1.10.1) (2025-05-14)
 
 
