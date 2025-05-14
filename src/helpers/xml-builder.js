@@ -38,6 +38,8 @@ import {
   cmRegex,
   inchRegex,
   inchToTWIP,
+  emRegex,
+  numberRegex,
 } from '../utils/unit-conversion';
 // FIXME: remove the cyclic dependency
 // eslint-disable-next-line import/no-cycle
@@ -233,6 +235,13 @@ const fixupLineHeight = (lineHeight, fontSize) => {
   return +n * base;
 };
 
+const fixupTextIndent = (textIndent, fontSize) => {
+  if (emRegex.test(textIndent) || numberRegex.test(textIndent)) {
+    return parseFloat(textIndent) * 100;
+  }
+  return (fixupFontSize(textIndent) * 100) / fontSize;
+};
+
 // eslint-disable-next-line consistent-return
 const fixupRowHeight = (rowHeightString) => {
   if (pointRegex.test(rowHeightString)) {
@@ -334,20 +343,26 @@ const modifiedStyleAttributesBuilder = (docxDocumentInstance, vNode, attributes,
           : null
       );
     }
+    const indentation = {};
+
     if (vNode.properties.style['margin-left'] || vNode.properties.style['margin-right']) {
       const leftMargin = fixupMargin(vNode.properties.style['margin-left']);
       const rightMargin = fixupMargin(vNode.properties.style['margin-right']);
-      const indentation = {};
       if (leftMargin) {
         indentation.left = leftMargin;
       }
       if (rightMargin) {
         indentation.right = rightMargin;
       }
-      if (leftMargin || rightMargin) {
-        modifiedAttributes.indentation = indentation;
-      }
     }
+    if (vNode.properties.style['text-indent']) {
+      indentation.textIndent = vNode.properties.style['text-indent'];
+    }
+
+    if (Object.keys(indentation).length > 0) {
+      modifiedAttributes.indentation = indentation;
+    }
+
     if (vNode.properties.style.display) {
       modifiedAttributes.display = vNode.properties.style.display;
     }
@@ -720,7 +735,7 @@ const buildSpacing = (lineSpacing, beforeSpacing, afterSpacing) => {
   return spacingFragment;
 };
 
-const buildIndentation = ({ left, right }) => {
+const buildIndentation = ({ left, right, textIndent }, fontSize) => {
   const indentationFragment = fragment({
     namespaceAlias: { w: namespaces.w },
   }).ele('@w', 'ind');
@@ -730,6 +745,9 @@ const buildIndentation = ({ left, right }) => {
   }
   if (right) {
     indentationFragment.att('@w', 'right', right);
+  }
+  if (textIndent) {
+    indentationFragment.att('@w', 'firstLineChars', fixupTextIndent(textIndent, fontSize));
   }
 
   indentationFragment.up();
@@ -814,7 +832,7 @@ const buildParagraphProperties = (attributes) => {
           delete attributes.paragraphStyle;
           break;
         case 'indentation':
-          const indentationFragment = buildIndentation(attributes[key]);
+          const indentationFragment = buildIndentation(attributes[key], attributes.fontSize);
           paragraphPropertiesFragment.import(indentationFragment);
           // eslint-disable-next-line no-param-reassign
           delete attributes.indentation;
@@ -913,6 +931,7 @@ const computeImageDimensions = (vNode, attributes) => {
 };
 
 const buildParagraph = async (vNode, attributes, docxDocumentInstance) => {
+  // console.log('buildParagraph', vNode.tagName);
   const paragraphFragment = fragment({ namespaceAlias: { w: namespaces.w } }).ele('@w', 'p');
   const modifiedAttributes = modifiedStyleAttributesBuilder(
     docxDocumentInstance,

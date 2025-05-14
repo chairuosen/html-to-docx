@@ -1,6 +1,9 @@
 export const pixelRegex = /([\d.]+)px/i;
 export const percentageRegex = /([\d.]+)%/i;
 export const pointRegex = /([\d.]+)pt/i;
+
+export const numberRegex = /(^[\d.]+)$/i;
+export const emRegex = /([\d.]+)em/i;
 export const cmRegex = /([\d.]+)cm/i;
 export const inchRegex = /([\d.]+)in/i;
 
