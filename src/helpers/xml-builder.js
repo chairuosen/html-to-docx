@@ -343,6 +343,14 @@ const modifiedStyleAttributesBuilder = (docxDocumentInstance, vNode, attributes,
           : null
       );
     }
+    if (vNode.properties.style['margin-top']) {
+      modifiedAttributes.beforeSpacing = fixupMargin(vNode.properties.style['margin-top']);
+    }
+
+    if (vNode.properties.style['margin-bottom']) {
+      modifiedAttributes.afterSpacing = fixupMargin(vNode.properties.style['margin-bottom']);
+    }
+
     const indentation = {};
 
     if (vNode.properties.style['margin-left'] || vNode.properties.style['margin-right']) {
