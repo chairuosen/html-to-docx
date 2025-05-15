@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.12.0](https://github.com/chairuosen/html-to-docx/compare/v1.11.0...v1.12.0) (2025-05-15)
+
+
+### Features
+
+* ul ol list css style ([be9e755](https://github.com/chairuosen/html-to-docx/commit/be9e7552651bbd315123e16568170b1ff2ee7620))
+
 ## [1.11.0](https://github.com/chairuosen/html-to-docx/compare/v1.10.3...v1.11.0) (2025-05-15)
 
 
