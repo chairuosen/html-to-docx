@@ -1000,7 +1000,9 @@ const buildParagraph = async (vNode, attributes, docxDocumentInstance) => {
           if (isValidUrl(imageSource)) {
             base64String = await imageToBase64(imageSource).catch((error) => {
               // eslint-disable-next-line no-console
-              console.warning(`skipping image download and conversion due to ${error}`);
+              (console.warning || console.error)(
+                `skipping image ${imageSource} download and conversion due to ${error}`
+              );
             });
 
             if (base64String && getMIMETypes(imageSource)) {
@@ -1055,7 +1057,9 @@ const buildParagraph = async (vNode, attributes, docxDocumentInstance) => {
       if (isValidUrl(imageSource)) {
         base64String = await imageToBase64(imageSource).catch((error) => {
           // eslint-disable-next-line no-console
-          console.warning(`skipping image download and conversion due to ${error}`);
+          (console.warning || console.error)(
+            `skipping image ${imageSource} download and conversion due to ${error}`
+          );
         });
 
         if (base64String && getMIMETypes(imageSource)) {
