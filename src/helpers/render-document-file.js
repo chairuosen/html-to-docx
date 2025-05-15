@@ -145,7 +145,15 @@ export const buildList = async (vNode, docxDocumentInstance, xmlFragment) => {
           } else {
             const paragraphVNode = new VNode(
               'p',
-              null,
+              {
+                style: {
+                  ...(vNode.properties ? vNode.properties.style || {} : {}),
+                  ...(tempVNodeObject.node.properties
+                    ? tempVNodeObject.node.properties.style || {}
+                    : {}),
+                  ...(childVNode.properties ? childVNode.properties.style || {} : {}),
+                },
+              },
               // eslint-disable-next-line no-nested-ternary
               isVText(childVNode)
                 ? [childVNode]
