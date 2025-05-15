@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.11.0](https://github.com/chairuosen/html-to-docx/compare/v1.10.3...v1.11.0) (2025-05-15)
+
+
+### Features
+
+* margin top and bottom support ([2a7816e](https://github.com/chairuosen/html-to-docx/commit/2a7816e6b17937d8afa2ea08d5ef67d1818b09e5))
+
 ### [1.10.3](https://github.com/chairuosen/html-to-docx/compare/v1.10.2...v1.10.3) (2025-05-15)
 
 
