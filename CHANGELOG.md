@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.12.2](https://github.com/chairuosen/html-to-docx/compare/v1.12.1...v1.12.2) (2025-05-16)
+
+
+### Bug Fixes
+
+* image dimensions with style but no width/height ([ad6f5e7](https://github.com/chairuosen/html-to-docx/commit/ad6f5e78b3b5d83239b7307e2b5e9988c84276ce))
+
 ### [1.12.1](https://github.com/chairuosen/html-to-docx/compare/v1.12.0...v1.12.1) (2025-05-15)
 
 ## [1.12.0](https://github.com/chairuosen/html-to-docx/compare/v1.11.0...v1.12.0) (2025-05-15)
