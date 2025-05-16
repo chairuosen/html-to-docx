@@ -926,6 +926,9 @@ const computeImageDimensions = (vNode, attributes) => {
       modifiedHeight = Math.round(modifiedWidth / aspectRatio);
     } else if (modifiedHeight && !modifiedWidth) {
       modifiedWidth = Math.round(modifiedHeight * aspectRatio);
+    } else if (!modifiedWidth && !modifiedHeight) {
+      modifiedWidth = originalWidthInEMU;
+      modifiedHeight = originalHeightInEMU;
     }
   } else {
     modifiedWidth = originalWidthInEMU;
