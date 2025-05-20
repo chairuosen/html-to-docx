@@ -1,6 +1,12 @@
 html-to-docx
 ============
 
+this is forked from html-to-docx for private use. and package name changed to mp-html-to-docx.
+
+some of the feature update maybe related to our business env, so be careful to use it in your production.
+
+---------------
+
 [![NPM Version][npm-image]][npm-url]
 
 html-to-docx is a js library for converting HTML documents to DOCX format supported by Microsoft Word 2007+, LibreOffice Writer, Google Docs, WPS Writer etc.
