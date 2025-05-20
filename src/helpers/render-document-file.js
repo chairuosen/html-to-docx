@@ -336,8 +336,8 @@ export async function convertVTreeToXML(docxDocumentInstance, vTree, xmlFragment
   return xmlFragment;
 }
 
-async function renderDocumentFile(docxDocumentInstance) {
-  const vTree = convertHTML(docxDocumentInstance.htmlString);
+async function renderDocumentFile(docxDocumentInstance, options = {}) {
+  const vTree = options.vTree || convertHTML(docxDocumentInstance.htmlString);
 
   const xmlFragment = fragment({ namespaceAlias: { w: namespaces.w } });
 

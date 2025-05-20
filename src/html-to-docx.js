@@ -33,6 +33,7 @@ import {
   themeFolder,
   themeType,
 } from './constants';
+import { fixupEverythingToTWIP } from './helpers/xml-builder';
 
 const convertHTML = HTMLToVDOM({
   VNode,
@@ -133,9 +134,32 @@ async function addFilesToContainer(
     footerHTMLString = decode(footerHTMLString); // eslint-disable-line no-param-reassign
   }
 
+  const tempVTree = convertHTML(htmlString);
+  if (tempVTree.tagName === 'body') {
+    const styles = tempVTree.properties ? tempVTree.properties.style || {} : {};
+    const margins = {};
+    if (styles['margin-top']) {
+      margins.top = fixupEverythingToTWIP(styles['margin-top']);
+    }
+    if (styles['margin-bottom']) {
+      margins.bottom = fixupEverythingToTWIP(styles['margin-bottom']);
+    }
+    if (styles['margin-left']) {
+      margins.left = fixupEverythingToTWIP(styles['margin-left']);
+    }
+    if (styles['margin-right']) {
+      margins.right = fixupEverythingToTWIP(styles['margin-right']);
+    }
+    if (Object.keys(margins).length > 0) {
+      documentOptions.margins = {
+        ...documentOptions.margins,
+        ...margins,
+      };
+    }
+  }
   const docxDocument = new DocxDocument({ zip, htmlString, ...documentOptions });
   // Conversion to Word XML happens here
-  docxDocument.documentXML = await renderDocumentFile(docxDocument);
+  docxDocument.documentXML = await renderDocumentFile(docxDocument, { vTree: tempVTree });
 
   zip
     .folder(relsFolderName)

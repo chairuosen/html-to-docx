@@ -278,6 +278,23 @@ const fixupColumnWidth = (columnWidthString) => {
   }
 };
 
+export const fixupEverythingToTWIP = (n) => {
+  if (pointRegex.test(n)) {
+    const matchedParts = n.match(pointRegex);
+    return pointToTWIP(matchedParts[1]);
+  } else if (pixelRegex.test(n)) {
+    const matchedParts = n.match(pixelRegex);
+    return pixelToTWIP(matchedParts[1]);
+  } else if (cmRegex.test(n)) {
+    const matchedParts = n.match(cmRegex);
+    return cmToTWIP(matchedParts[1]);
+  } else if (inchRegex.test(n)) {
+    const matchedParts = n.match(inchRegex);
+    return inchToTWIP(matchedParts[1]);
+  }
+  return n;
+};
+
 // eslint-disable-next-line consistent-return
 const fixupMargin = (marginString) => {
   if (pointRegex.test(marginString)) {
@@ -1025,7 +1042,14 @@ const buildParagraph = async (vNode, attributes, docxDocumentInstance) => {
             }
           } else {
             // eslint-disable-next-line no-useless-escape, prefer-destructuring
-            base64String = imageSource.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/)[2];
+            const base64StringMatch = imageSource.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+            if (base64StringMatch) {
+              // eslint-disable-next-line prefer-destructuring
+              base64String = base64StringMatch[2];
+            } else {
+              // eslint-disable-next-line no-continue
+              continue;
+            }
           }
           const imageBuffer = Buffer.from(decodeURIComponent(base64String), 'base64');
           const imageProperties = sizeOf(imageBuffer);
