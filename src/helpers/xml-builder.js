@@ -353,11 +353,6 @@ const modifiedStyleAttributesBuilder = (docxDocumentInstance, vNode, attributes,
       modifiedAttributes.fontSize = fixupFontSize(vNode.properties.style['font-size']);
     }
     if (vNode.properties.style['line-height']) {
-      console.log(
-        'modifiedStyleAttributesBuilder lineHeight',
-        vNode.tagName,
-        vNode.properties.style['line-height']
-      );
       // eslint-disable-next-line no-restricted-globals
       if (isNaN(vNode.properties.style['line-height'])) {
         modifiedAttributes.lineRule = 'exact';
