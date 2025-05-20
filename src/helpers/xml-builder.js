@@ -224,15 +224,15 @@ const fixupFontSize = (fontSizeString) => {
 };
 
 // eslint-disable-next-line consistent-return
-const fixupLineHeight = (lineHeight, fontSize) => {
+const fixupLineHeight = (lineHeight) => {
   // eslint-disable-next-line no-restricted-globals
-  let n = isNaN(lineHeight) ? fixupFontSize(lineHeight) / fontSize : lineHeight;
-  const base = 240;
-  // eslint-disable-next-line no-restricted-globals
-  if (isNaN(n)) {
-    n = 1;
+  if (isNaN(lineHeight)) {
+    // eslint-disable-next-line no-use-before-define
+    return fixupEverythingToTWIP(lineHeight);
+  } else {
+    const base = 240;
+    return +lineHeight * base;
   }
-  return +n * base;
 };
 
 const fixupTextIndent = (textIndent, fontSize) => {
@@ -353,16 +353,16 @@ const modifiedStyleAttributesBuilder = (docxDocumentInstance, vNode, attributes,
       modifiedAttributes.fontSize = fixupFontSize(vNode.properties.style['font-size']);
     }
     if (vNode.properties.style['line-height']) {
+      console.log(
+        'modifiedStyleAttributesBuilder lineHeight',
+        vNode.tagName,
+        vNode.properties.style['line-height']
+      );
       // eslint-disable-next-line no-restricted-globals
       if (isNaN(vNode.properties.style['line-height'])) {
         modifiedAttributes.lineRule = 'exact';
       }
-      modifiedAttributes.lineHeight = fixupLineHeight(
-        vNode.properties.style['line-height'],
-        vNode.properties.style['font-size']
-          ? fixupFontSize(vNode.properties.style['font-size'])
-          : null
-      );
+      modifiedAttributes.lineHeight = fixupLineHeight(vNode.properties.style['line-height']);
     }
     if (vNode.properties.style['margin-top']) {
       modifiedAttributes.beforeSpacing = fixupMargin(vNode.properties.style['margin-top']);
