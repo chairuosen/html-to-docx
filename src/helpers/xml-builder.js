@@ -97,6 +97,7 @@ const buildRunFontFragment = (fontName = defaultFont) =>
     .ele('@w', 'rFonts')
     .att('@w', 'ascii', fontName)
     .att('@w', 'hAnsi', fontName)
+    .att('@w', 'eastAsia', fontName)
     .up();
 
 const buildRunStyleFragment = (type = 'Hyperlink') =>
