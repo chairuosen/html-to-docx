@@ -166,9 +166,10 @@ const buildStrike = () =>
     .att('@w', 'val', true)
     .up();
 
-const buildBold = () =>
+const buildBold = (val = '1') =>
   fragment({ namespaceAlias: { w: namespaces.w } })
     .ele('@w', 'b')
+    .att('@w', 'val', val)
     .up();
 
 const buildItalics = () =>
@@ -343,6 +344,11 @@ const modifiedStyleAttributesBuilder = (docxDocumentInstance, vNode, attributes,
     // FIXME: remove bold check when other font weights are handled.
     if (vNode.properties.style['font-weight'] && vNode.properties.style['font-weight'] === 'bold') {
       modifiedAttributes.strong = vNode.properties.style['font-weight'];
+    } else if (
+      vNode.properties.style['font-weight'] &&
+      vNode.properties.style['font-weight'] === 'normal'
+    ) {
+      modifiedAttributes.strong = false;
     }
     if (vNode.properties.style['font-family']) {
       modifiedAttributes.font = docxDocumentInstance.createFont(
@@ -413,11 +419,11 @@ const modifiedStyleAttributesBuilder = (docxDocumentInstance, vNode, attributes,
 
 // html tag to formatting function
 // options are passed to the formatting function if needed
-const buildFormatting = (htmlTag, options) => {
+const buildFormatting = (htmlTag, options = {}) => {
   switch (htmlTag) {
     case 'strong':
     case 'b':
-      return buildBold();
+      return buildBold(options.strong === false ? '0' : '1');
     case 'em':
     case 'i':
       return buildItalics();
@@ -465,7 +471,7 @@ const buildRunProperties = (attributes) => {
         options.color = attributes[key];
       }
 
-      if (key === 'fontSize' || key === 'font') {
+      if (['fontSize', 'font', 'strong'].indexOf(key) !== -1) {
         options[key] = attributes[key];
       }
 
