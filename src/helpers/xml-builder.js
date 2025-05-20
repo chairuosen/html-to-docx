@@ -353,6 +353,10 @@ const modifiedStyleAttributesBuilder = (docxDocumentInstance, vNode, attributes,
       modifiedAttributes.fontSize = fixupFontSize(vNode.properties.style['font-size']);
     }
     if (vNode.properties.style['line-height']) {
+      // eslint-disable-next-line no-restricted-globals
+      if (isNaN(vNode.properties.style['line-height'])) {
+        modifiedAttributes.lineRule = 'exact';
+      }
       modifiedAttributes.lineHeight = fixupLineHeight(
         vNode.properties.style['line-height'],
         vNode.properties.style['font-size']
@@ -742,7 +746,7 @@ const buildNumberingInstances = () =>
     .up()
     .up();
 
-const buildSpacing = (lineSpacing, beforeSpacing, afterSpacing) => {
+const buildSpacing = (lineRule, lineSpacing, beforeSpacing, afterSpacing) => {
   const spacingFragment = fragment({ namespaceAlias: { w: namespaces.w } }).ele('@w', 'spacing');
 
   if (lineSpacing) {
@@ -755,7 +759,7 @@ const buildSpacing = (lineSpacing, beforeSpacing, afterSpacing) => {
     spacingFragment.att('@w', 'after', afterSpacing);
   }
 
-  spacingFragment.att('@w', 'lineRule', 'auto').up();
+  spacingFragment.att('@w', 'lineRule', lineRule).up();
 
   return spacingFragment;
 };
@@ -866,6 +870,7 @@ const buildParagraphProperties = (attributes) => {
     });
 
     const spacingFragment = buildSpacing(
+      attributes.lineRule || 'auto',
       attributes.lineHeight,
       attributes.beforeSpacing,
       attributes.afterSpacing
