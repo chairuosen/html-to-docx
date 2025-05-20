@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.15.1](https://github.com/chairuosen/html-to-docx/compare/v1.15.0...v1.15.1) (2025-05-20)
+
+
+### Bug Fixes
+
+* title bold ([876c3e3](https://github.com/chairuosen/html-to-docx/commit/876c3e354b29cc585878239b826c205dc63ccd67))
+
 ## [1.15.0](https://github.com/chairuosen/html-to-docx/compare/v1.14.0...v1.15.0) (2025-05-20)
 
 
