@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.15.4](https://github.com/chairuosen/html-to-docx/compare/v1.15.2...v1.15.4) (2025-06-17)
+
 ### [1.15.2](https://github.com/chairuosen/html-to-docx/compare/v1.15.1...v1.15.2) (2025-05-27)
 
 
