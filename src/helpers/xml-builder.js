@@ -314,71 +314,69 @@ const modifiedStyleAttributesBuilder = (docxDocumentInstance, vNode, attributes,
   const modifiedAttributes = { ...attributes };
 
   // styles
-  if (isVNode(vNode) && vNode.properties && vNode.properties.style) {
-    if (vNode.properties.style.color && !colorlessColors.includes(vNode.properties.style.color)) {
-      modifiedAttributes.color = fixupColorCode(vNode.properties.style.color);
+  if (isVNode(vNode) && vNode.properties) {
+    const finalStyle = {
+      ...(docxDocumentInstance.globalTextStyle || {}),
+      ...vNode.properties.style,
+    };
+
+    if (finalStyle.color && !colorlessColors.includes(finalStyle.color)) {
+      modifiedAttributes.color = fixupColorCode(finalStyle.color);
     }
 
     if (
-      vNode.properties.style['background-color'] &&
-      !colorlessColors.includes(vNode.properties.style['background-color'])
+      finalStyle['background-color'] &&
+      !colorlessColors.includes(finalStyle['background-color'])
     ) {
-      modifiedAttributes.backgroundColor = fixupColorCode(
-        vNode.properties.style['background-color']
-      );
+      modifiedAttributes.backgroundColor = fixupColorCode(finalStyle['background-color']);
     }
 
     if (
-      vNode.properties.style['vertical-align'] &&
-      verticalAlignValues.includes(vNode.properties.style['vertical-align'])
+      finalStyle['vertical-align'] &&
+      verticalAlignValues.includes(finalStyle['vertical-align'])
     ) {
-      modifiedAttributes.verticalAlign = vNode.properties.style['vertical-align'];
+      modifiedAttributes.verticalAlign = finalStyle['vertical-align'];
     }
 
     if (
-      vNode.properties.style['text-align'] &&
-      ['left', 'right', 'center', 'justify'].includes(vNode.properties.style['text-align'])
+      finalStyle['text-align'] &&
+      ['left', 'right', 'center', 'justify'].includes(finalStyle['text-align'])
     ) {
-      modifiedAttributes.textAlign = vNode.properties.style['text-align'];
+      modifiedAttributes.textAlign = finalStyle['text-align'];
     }
 
     // FIXME: remove bold check when other font weights are handled.
-    if (vNode.properties.style['font-weight'] && vNode.properties.style['font-weight'] === 'bold') {
-      modifiedAttributes.strong = vNode.properties.style['font-weight'];
-    } else if (
-      vNode.properties.style['font-weight'] &&
-      vNode.properties.style['font-weight'] === 'normal'
-    ) {
+    if (finalStyle['font-weight'] && finalStyle['font-weight'] === 'bold') {
+      modifiedAttributes.strong = finalStyle['font-weight'];
+    } else if (finalStyle['font-weight'] && finalStyle['font-weight'] === 'normal') {
       modifiedAttributes.strong = false;
     }
-    if (vNode.properties.style['font-family']) {
-      modifiedAttributes.font = docxDocumentInstance.createFont(
-        vNode.properties.style['font-family']
-      );
+    if (finalStyle['font-family']) {
+      modifiedAttributes.font = docxDocumentInstance.createFont(finalStyle['font-family']);
     }
-    if (vNode.properties.style['font-size']) {
-      modifiedAttributes.fontSize = fixupFontSize(vNode.properties.style['font-size']);
+    if (finalStyle['font-size']) {
+      modifiedAttributes.fontSize = fixupFontSize(finalStyle['font-size']);
     }
-    if (vNode.properties.style['line-height']) {
+    if (finalStyle['line-height']) {
       // eslint-disable-next-line no-restricted-globals
-      if (isNaN(vNode.properties.style['line-height'])) {
+      if (isNaN(finalStyle['line-height'])) {
         modifiedAttributes.lineRule = 'exact';
       }
-      modifiedAttributes.lineHeight = fixupLineHeight(vNode.properties.style['line-height']);
+      modifiedAttributes.lineHeight = fixupLineHeight(finalStyle['line-height']);
     }
-    if (vNode.properties.style['margin-top']) {
-      modifiedAttributes.beforeSpacing = fixupMargin(vNode.properties.style['margin-top']);
+    if (finalStyle['margin-top']) {
+      modifiedAttributes.beforeSpacing = fixupMargin(finalStyle['margin-top']);
     }
 
-    if (vNode.properties.style['margin-bottom']) {
-      modifiedAttributes.afterSpacing = fixupMargin(vNode.properties.style['margin-bottom']);
+    if (finalStyle['margin-bottom']) {
+      modifiedAttributes.afterSpacing = fixupMargin(finalStyle['margin-bottom']);
     }
 
     const indentation = {};
 
-    if (vNode.properties.style['margin-left'] || vNode.properties.style['margin-right']) {
-      const leftMargin = fixupMargin(vNode.properties.style['margin-left']);
-      const rightMargin = fixupMargin(vNode.properties.style['margin-right']);
+    if (finalStyle['margin-left'] || finalStyle['margin-right']) {
+      const leftMargin = fixupMargin(finalStyle['margin-left']);
+      const rightMargin = fixupMargin(finalStyle['margin-right']);
       if (leftMargin) {
         indentation.left = leftMargin;
       }
@@ -386,20 +384,20 @@ const modifiedStyleAttributesBuilder = (docxDocumentInstance, vNode, attributes,
         indentation.right = rightMargin;
       }
     }
-    if (vNode.properties.style['text-indent']) {
-      indentation.textIndent = vNode.properties.style['text-indent'];
+    if (finalStyle['text-indent']) {
+      indentation.textIndent = finalStyle['text-indent'];
     }
 
     if (Object.keys(indentation).length > 0) {
       modifiedAttributes.indentation = indentation;
     }
 
-    if (vNode.properties.style.display) {
-      modifiedAttributes.display = vNode.properties.style.display;
+    if (finalStyle.display) {
+      modifiedAttributes.display = finalStyle.display;
     }
 
-    if (vNode.properties.style.width) {
-      modifiedAttributes.width = vNode.properties.style.width;
+    if (finalStyle.width) {
+      modifiedAttributes.width = finalStyle.width;
     }
   }
 

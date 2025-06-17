@@ -116,6 +116,7 @@ class DocxDocument {
     this.htmlString = properties.htmlString;
     this.orientation = properties.orientation;
     this.pageSize = properties.pageSize || defaultDocumentOptions.pageSize;
+    this.globalTextStyle = properties.globalTextStyle || {};
 
     const isPortraitOrientation = this.orientation === defaultOrientation;
     const height = this.pageSize.height ? this.pageSize.height : landscapeHeight;

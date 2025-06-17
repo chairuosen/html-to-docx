@@ -156,6 +156,26 @@ async function addFilesToContainer(
         ...margins,
       };
     }
+
+    const textGlobalStyleKey = [
+      'font-family',
+      'font-size',
+      'line-height',
+      'text-indent',
+      'letter-spacing',
+      'color',
+      'font-weight',
+      'font-style',
+    ];
+
+    const globalTextStyle = {};
+    textGlobalStyleKey.forEach((key) => {
+      if (styles[key]) {
+        globalTextStyle[key] = styles[key];
+      }
+    });
+
+    documentOptions.globalTextStyle = globalTextStyle;
   }
   const docxDocument = new DocxDocument({ zip, htmlString, ...documentOptions });
   // Conversion to Word XML happens here
