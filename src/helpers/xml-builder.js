@@ -1175,7 +1175,7 @@ const buildTableCellBorders = (tableCellBorder) => {
 const buildTableCellWidth = (tableCellWidth) =>
   fragment({ namespaceAlias: { w: namespaces.w } })
     .ele('@w', 'tcW')
-    .att('@w', 'w', fixupColumnWidth(tableCellWidth))
+    .att('@w', 'w', fixupColumnWidth(tableCellWidth) || 'auto')
     .att('@w', 'type', 'dxa')
     .up();
 
