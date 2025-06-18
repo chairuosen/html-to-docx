@@ -25,7 +25,11 @@ const convertHTML = HTMLToVDOM({
 });
 
 export function getMIMETypes(arg) {
-  return mimeTypes.lookup((arg || '').replace(/~.*$/g, '')) || 'image/png';
+  try {
+    return mimeTypes.lookup((arg || '').replace(/~.*$/g, '')) || 'image/png';
+  } catch (e) {
+    return '';
+  }
 }
 
 // eslint-disable-next-line consistent-return, no-shadow
