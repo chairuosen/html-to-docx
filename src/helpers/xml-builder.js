@@ -1027,44 +1027,49 @@ const buildParagraph = async (vNode, attributes, docxDocumentInstance) => {
     } else {
       for (let index = 0; index < vNode.children.length; index++) {
         const childVNode = vNode.children[index];
-        if (childVNode.tagName === 'img') {
-          let base64String;
-          const imageSource = childVNode.properties.src;
-          if (isValidUrl(imageSource)) {
-            base64String = await imageToBase64(imageSource).catch((error) => {
-              // eslint-disable-next-line no-console
-              (console.warning || console.error)(
-                `skipping image ${imageSource} download and conversion due to ${error}`
-              );
-            });
+        try {
+          if (childVNode.tagName === 'img') {
+            let base64String;
+            const imageSource = childVNode.properties.src;
+            if (isValidUrl(imageSource)) {
+              base64String = await imageToBase64(imageSource).catch((error) => {
+                // eslint-disable-next-line no-console
+                (console.warning || console.error)(
+                  `skipping image ${imageSource} download and conversion due to ${error}`
+                );
+              });
 
-            if (base64String && getMIMETypes(imageSource)) {
-              childVNode.properties.src = `data:${getMIMETypes(
-                imageSource
-              )};base64, ${base64String}`;
+              if (base64String && getMIMETypes(imageSource)) {
+                childVNode.properties.src = `data:${getMIMETypes(
+                  imageSource
+                )};base64, ${base64String}`;
+              } else {
+                break;
+              }
             } else {
-              break;
+              // eslint-disable-next-line no-useless-escape, prefer-destructuring
+              const base64StringMatch = imageSource.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+              if (base64StringMatch) {
+                // eslint-disable-next-line prefer-destructuring
+                base64String = base64StringMatch[2];
+              } else {
+                // eslint-disable-next-line no-continue
+                continue;
+              }
             }
-          } else {
-            // eslint-disable-next-line no-useless-escape, prefer-destructuring
-            const base64StringMatch = imageSource.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-            if (base64StringMatch) {
-              // eslint-disable-next-line prefer-destructuring
-              base64String = base64StringMatch[2];
-            } else {
-              // eslint-disable-next-line no-continue
-              continue;
-            }
+            const imageBuffer = Buffer.from(decodeURIComponent(base64String), 'base64');
+
+            const imageProperties = sizeOf(imageBuffer);
+
+            modifiedAttributes.maximumWidth =
+              modifiedAttributes.maximumWidth || docxDocumentInstance.availableDocumentSpace;
+            modifiedAttributes.originalWidth = imageProperties.width;
+            modifiedAttributes.originalHeight = imageProperties.height;
+
+            computeImageDimensions(childVNode, modifiedAttributes);
           }
-          const imageBuffer = Buffer.from(decodeURIComponent(base64String), 'base64');
-          const imageProperties = sizeOf(imageBuffer);
-
-          modifiedAttributes.maximumWidth =
-            modifiedAttributes.maximumWidth || docxDocumentInstance.availableDocumentSpace;
-          modifiedAttributes.originalWidth = imageProperties.width;
-          modifiedAttributes.originalHeight = imageProperties.height;
-
-          computeImageDimensions(childVNode, modifiedAttributes);
+        } catch (e) {
+          console.error(e);
         }
         const runOrHyperlinkFragments = await buildRunOrHyperLink(
           childVNode,
