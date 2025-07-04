@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.16.6](https://github.com/chairuosen/html-to-docx/compare/v1.16.5...v1.16.6) (2025-07-04)
+
+
+### Bug Fixes
+
+* table border ([273e61a](https://github.com/chairuosen/html-to-docx/commit/273e61a9d2d73330c216e6374de4547405b78ad7))
+
 ### [1.16.5](https://github.com/chairuosen/html-to-docx/compare/v1.16.4...v1.16.5) (2025-07-04)
 
 
