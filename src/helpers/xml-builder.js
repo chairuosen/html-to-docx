@@ -1164,11 +1164,34 @@ const buildTableCellBorders = (tableCellBorder) => {
     'tcBorders'
   );
 
-  const { color, stroke, ...borders } = tableCellBorder;
-  Object.keys(borders).forEach((border) => {
-    if (tableCellBorder[border]) {
-      const borderFragment = buildBorder(border, tableCellBorder[border], 0, color, stroke);
-      tableCellBordersFragment.import(borderFragment);
+  const { explicitlySetBorders, ...borders } = tableCellBorder;
+
+  // Only process borders that were explicitly set in CSS
+  const bordersToProcess = explicitlySetBorders
+    ? Array.from(explicitlySetBorders)
+    : Object.keys(borders);
+
+  bordersToProcess.forEach((border) => {
+    const borderData = tableCellBorder[border];
+    if (borderData !== undefined) {
+      // Handle new structure where each border has its own properties
+      if (typeof borderData === 'object' && borderData.size !== undefined) {
+        const borderFragment = buildBorder(
+          border,
+          borderData.size,
+          0,
+          borderData.color,
+          borderData.stroke
+        );
+        tableCellBordersFragment.import(borderFragment);
+      } else {
+        // Fallback for old structure (backward compatibility)
+        const size = typeof borderData === 'number' ? borderData : 0;
+        const stroke = size > 0 ? tableCellBorder.stroke || 'single' : 'nil';
+        const color = tableCellBorder.color || '000000';
+        const borderFragment = buildBorder(border, size, 0, color, stroke);
+        tableCellBordersFragment.import(borderFragment);
+      }
     }
   });
 
@@ -1235,103 +1258,164 @@ const buildTableCellProperties = (attributes) => {
   return tableCellPropertiesFragment;
 };
 
+const cssBorderParser = (borderString) => {
+  let [size, stroke, color] = borderString.split(' ');
+
+  if (pointRegex.test(size)) {
+    const matchedParts = size.match(pointRegex);
+    // convert point to eighth of a point
+    size = pointToEIP(matchedParts[1]);
+  } else if (pixelRegex.test(size)) {
+    const matchedParts = size.match(pixelRegex);
+    // convert pixels to eighth of a point
+    size = pixelToEIP(matchedParts[1]);
+  }
+
+  // Enhanced border style mapping to match docx border types
+  if (stroke) {
+    switch (stroke.toLowerCase()) {
+      case 'solid':
+        stroke = 'single';
+        break;
+      case 'dashed':
+      case 'dotted':
+        stroke = stroke.toLowerCase(); // Keep as is
+        break;
+      case 'double':
+        stroke = 'double';
+        break;
+      case 'none':
+        stroke = 'nil';
+        break;
+      default: // Default fallback
+        stroke = 'single';
+        break;
+    }
+  } else {
+    stroke = 'single'; // Default when no stroke specified
+  }
+
+  color = color && fixupColorCode(color).toUpperCase();
+
+  return [size, stroke, color];
+};
+
+// Enhanced function to parse individual border styles (border-top, border-left, etc.)
+const parseIndividualBorderStyle = (borderStyleString) => {
+  if (!borderStyleString || borderStyleString === 'none' || borderStyleString === '0') {
+    return { size: 0, stroke: 'nil', color: '000000' };
+  }
+
+  const parts = borderStyleString.trim().split(/\s+/);
+  let size = 0;
+  let stroke = 'single';
+  let color = '000000';
+
+  // Parse each part
+  parts.forEach((part) => {
+    if (pointRegex.test(part)) {
+      const matchedParts = part.match(pointRegex);
+      size = pointToEIP(matchedParts[1]);
+    } else if (pixelRegex.test(part)) {
+      const matchedParts = part.match(pixelRegex);
+      size = pixelToEIP(matchedParts[1]);
+    } else if (['solid', 'dashed', 'dotted', 'double', 'none'].includes(part.toLowerCase())) {
+      switch (part.toLowerCase()) {
+        case 'solid':
+          stroke = 'single';
+          break;
+        case 'dashed':
+        case 'dotted':
+          stroke = part.toLowerCase();
+          break;
+        case 'double':
+          stroke = 'double';
+          break;
+        case 'none':
+          stroke = 'nil';
+          break;
+        default:
+          stroke = 'single';
+          break;
+      }
+    } else if (
+      part.startsWith('#') ||
+      /^[a-fA-F0-9]{3,6}$/.test(part) ||
+      Object.prototype.hasOwnProperty.call(colorNames, part.toLowerCase())
+    ) {
+      color = fixupColorCode(part).toUpperCase();
+    }
+  });
+
+  return { size, stroke, color };
+};
+
 const fixupTableCellBorder = (vNode, attributes) => {
+  // Initialize tableCellBorder if not exists
+  if (!attributes.tableCellBorder) {
+    attributes.tableCellBorder = {};
+  }
+
+  // Track which borders are explicitly set
+  const explicitlySetBorders = new Set();
+
+  // Handle general border property
   if (Object.prototype.hasOwnProperty.call(vNode.properties.style, 'border')) {
     if (vNode.properties.style.border === 'none' || vNode.properties.style.border === 0) {
-      attributes.tableCellBorder = {};
+      // Only set borders that are explicitly mentioned
+      ['top', 'left', 'bottom', 'right'].forEach((direction) => {
+        attributes.tableCellBorder[direction] = { size: 0, stroke: 'nil', color: '000000' };
+        explicitlySetBorders.add(direction);
+      });
     } else {
-      // eslint-disable-next-line no-use-before-define
       const [borderSize, borderStroke, borderColor] = cssBorderParser(
         vNode.properties.style.border
       );
 
-      attributes.tableCellBorder = {
-        top: borderSize,
-        left: borderSize,
-        bottom: borderSize,
-        right: borderSize,
-        color: borderColor,
-        stroke: borderStroke,
-      };
+      // Set all four directions when general border is specified
+      ['top', 'left', 'bottom', 'right'].forEach((direction) => {
+        attributes.tableCellBorder[direction] = {
+          size: borderSize,
+          stroke: borderStroke,
+          color: borderColor,
+        };
+        explicitlySetBorders.add(direction);
+      });
     }
   }
-  if (vNode.properties.style['border-top'] && vNode.properties.style['border-top'] === '0') {
-    attributes.tableCellBorder = {
-      ...attributes.tableCellBorder,
-      top: 0,
-    };
-  } else if (vNode.properties.style['border-top'] && vNode.properties.style['border-top'] !== '0') {
-    // eslint-disable-next-line no-use-before-define
-    const [borderSize, borderStroke, borderColor] = cssBorderParser(
-      vNode.properties.style['border-top']
+
+  // Handle individual border directions with enhanced parsing
+  const directions = ['top', 'left', 'bottom', 'right'];
+  directions.forEach((direction) => {
+    const borderProperty = `border-${direction}`;
+    if (vNode.properties.style[borderProperty]) {
+      const borderStyle = parseIndividualBorderStyle(vNode.properties.style[borderProperty]);
+
+      // Mark this direction as explicitly set
+      explicitlySetBorders.add(direction);
+      attributes.tableCellBorder[direction] = borderStyle;
+    }
+  });
+
+  // Handle custom docx inside border properties
+  if (vNode.properties.style['--docx-inside-h-border']) {
+    const borderStyle = parseIndividualBorderStyle(
+      vNode.properties.style['--docx-inside-h-border']
     );
-    attributes.tableCellBorder = {
-      ...attributes.tableCellBorder,
-      top: borderSize,
-      color: borderColor,
-      stroke: borderStroke,
-    };
+    explicitlySetBorders.add('insideH');
+    attributes.tableCellBorder.insideH = borderStyle;
   }
-  if (vNode.properties.style['border-left'] && vNode.properties.style['border-left'] === '0') {
-    attributes.tableCellBorder = {
-      ...attributes.tableCellBorder,
-      left: 0,
-    };
-  } else if (
-    vNode.properties.style['border-left'] &&
-    vNode.properties.style['border-left'] !== '0'
-  ) {
-    // eslint-disable-next-line no-use-before-define
-    const [borderSize, borderStroke, borderColor] = cssBorderParser(
-      vNode.properties.style['border-left']
+
+  if (vNode.properties.style['--docx-inside-v-border']) {
+    const borderStyle = parseIndividualBorderStyle(
+      vNode.properties.style['--docx-inside-v-border']
     );
-    attributes.tableCellBorder = {
-      ...attributes.tableCellBorder,
-      left: borderSize,
-      color: borderColor,
-      stroke: borderStroke,
-    };
+    explicitlySetBorders.add('insideV');
+    attributes.tableCellBorder.insideV = borderStyle;
   }
-  if (vNode.properties.style['border-bottom'] && vNode.properties.style['border-bottom'] === '0') {
-    attributes.tableCellBorder = {
-      ...attributes.tableCellBorder,
-      bottom: 0,
-    };
-  } else if (
-    vNode.properties.style['border-bottom'] &&
-    vNode.properties.style['border-bottom'] !== '0'
-  ) {
-    // eslint-disable-next-line no-use-before-define
-    const [borderSize, borderStroke, borderColor] = cssBorderParser(
-      vNode.properties.style['border-bottom']
-    );
-    attributes.tableCellBorder = {
-      ...attributes.tableCellBorder,
-      bottom: borderSize,
-      color: borderColor,
-      stroke: borderStroke,
-    };
-  }
-  if (vNode.properties.style['border-right'] && vNode.properties.style['border-right'] === '0') {
-    attributes.tableCellBorder = {
-      ...attributes.tableCellBorder,
-      right: 0,
-    };
-  } else if (
-    vNode.properties.style['border-right'] &&
-    vNode.properties.style['border-right'] !== '0'
-  ) {
-    // eslint-disable-next-line no-use-before-define
-    const [borderSize, borderStroke, borderColor] = cssBorderParser(
-      vNode.properties.style['border-right']
-    );
-    attributes.tableCellBorder = {
-      ...attributes.tableCellBorder,
-      right: borderSize,
-      color: borderColor,
-      stroke: borderStroke,
-    };
-  }
+
+  // Store information about which borders were explicitly set
+  attributes.tableCellBorder.explicitlySetBorders = explicitlySetBorders;
 };
 
 const buildTableCell = async (vNode, attributes, rowSpanMap, columnIndex, docxDocumentInstance) => {
@@ -1630,12 +1714,24 @@ const buildTableBorders = (tableBorder) => {
     'tblBorders'
   );
 
-  const { color, stroke, ...borders } = tableBorder;
+  const { color, stroke, explicitlySetBorders, ...borders } = tableBorder;
 
-  Object.keys(borders).forEach((border) => {
-    if (borders[border]) {
-      const borderFragment = buildBorder(border, borders[border], 0, color, stroke);
-      tableBordersFragment.import(borderFragment);
+  // Only process borders that were explicitly set in CSS
+  const bordersToProcess = explicitlySetBorders
+    ? Array.from(explicitlySetBorders)
+    : Object.keys(borders);
+
+  bordersToProcess.forEach((border) => {
+    if (tableBorder[border] !== undefined) {
+      // Only add border if it has a size and stroke is not 'nil'
+      if (tableBorder[border] && tableBorder[border] > 0 && stroke !== 'nil') {
+        const borderFragment = buildBorder(border, tableBorder[border], 0, color, stroke);
+        tableBordersFragment.import(borderFragment);
+      } else if (stroke === 'nil' || tableBorder[border] === 0) {
+        // Explicitly set nil border for none/0 borders
+        const borderFragment = buildBorder(border, 0, 0, color, 'nil');
+        tableBordersFragment.import(borderFragment);
+      }
     }
   });
 
@@ -1720,25 +1816,6 @@ const buildTableProperties = (attributes) => {
   return tablePropertiesFragment;
 };
 
-const cssBorderParser = (borderString) => {
-  let [size, stroke, color] = borderString.split(' ');
-
-  if (pointRegex.test(size)) {
-    const matchedParts = size.match(pointRegex);
-    // convert point to eighth of a point
-    size = pointToEIP(matchedParts[1]);
-  } else if (pixelRegex.test(size)) {
-    const matchedParts = size.match(pixelRegex);
-    // convert pixels to eighth of a point
-    size = pixelToEIP(matchedParts[1]);
-  }
-  stroke = stroke && ['dashed', 'dotted', 'double'].includes(stroke) ? stroke : 'single';
-
-  color = color && fixupColorCode(color).toUpperCase();
-
-  return [size, stroke, color];
-};
-
 const buildTable = async (vNode, attributes, docxDocumentInstance) => {
   const tableFragment = fragment({ namespaceAlias: { w: namespaces.w } }).ele('@w', 'tbl');
   const modifiedAttributes = { ...attributes };
@@ -1749,9 +1826,16 @@ const buildTable = async (vNode, attributes, docxDocumentInstance) => {
     const tableCellBorders = {};
     let [borderSize, borderStrike, borderColor] = [2, 'single', '000000'];
 
+    // Track which table borders are explicitly set
+    const explicitlySetTableBorders = new Set();
+
     // eslint-disable-next-line no-restricted-globals
     if (!isNaN(tableAttributes.border)) {
       borderSize = parseInt(tableAttributes.border, 10);
+      // When border attribute is set, all directions are explicitly set
+      ['top', 'bottom', 'left', 'right'].forEach((direction) => {
+        explicitlySetTableBorders.add(direction);
+      });
     }
 
     // css style overrides table border properties
@@ -1760,21 +1844,73 @@ const buildTable = async (vNode, attributes, docxDocumentInstance) => {
       borderSize = cssSize || borderSize;
       borderColor = cssColor || borderColor;
       borderStrike = cssStroke || borderStrike;
+
+      // When general border is set, all directions are explicitly set
+      ['top', 'bottom', 'left', 'right'].forEach((direction) => {
+        explicitlySetTableBorders.add(direction);
+        tableBorders[direction] = borderSize;
+      });
+      tableBorders.stroke = borderStrike;
+      tableBorders.color = borderColor;
     }
 
-    tableBorders.top = borderSize;
-    tableBorders.bottom = borderSize;
-    tableBorders.left = borderSize;
-    tableBorders.right = borderSize;
-    tableBorders.stroke = borderStrike;
-    tableBorders.color = borderColor;
+    // Handle individual table border directions
+    const tableBorderDirections = ['top', 'bottom', 'left', 'right'];
+    tableBorderDirections.forEach((direction) => {
+      const borderProperty = `border-${direction}`;
+      if (tableStyles[borderProperty]) {
+        const borderStyle = parseIndividualBorderStyle(tableStyles[borderProperty]);
+        explicitlySetTableBorders.add(direction);
+        tableBorders[direction] = borderStyle.size;
+        if (borderStyle.stroke !== 'nil') {
+          tableBorders.stroke = borderStyle.stroke;
+          tableBorders.color = borderStyle.color;
+        }
+      }
+    });
+
+    // Handle custom docx inside border properties
+    if (tableStyles['--docx-inside-h-border']) {
+      const borderStyle = parseIndividualBorderStyle(tableStyles['--docx-inside-h-border']);
+      explicitlySetTableBorders.add('insideH');
+      tableBorders.insideH = borderStyle.size;
+      if (borderStyle.stroke !== 'nil') {
+        tableBorders.stroke = borderStyle.stroke;
+        tableBorders.color = borderStyle.color;
+      }
+    }
+
+    if (tableStyles['--docx-inside-v-border']) {
+      const borderStyle = parseIndividualBorderStyle(tableStyles['--docx-inside-v-border']);
+      explicitlySetTableBorders.add('insideV');
+      tableBorders.insideV = borderStyle.size;
+      if (borderStyle.stroke !== 'nil') {
+        tableBorders.stroke = borderStyle.stroke;
+        tableBorders.color = borderStyle.color;
+      }
+    }
+
+    // Store information about explicitly set borders
+    if (explicitlySetTableBorders.size > 0) {
+      tableBorders.explicitlySetBorders = explicitlySetTableBorders;
+    }
 
     if (tableStyles['border-collapse'] === 'collapse') {
-      tableBorders.insideV = borderSize;
-      tableBorders.insideH = borderSize;
+      // Only set inside borders if they weren't explicitly set by custom properties
+      if (!explicitlySetTableBorders.has('insideV')) {
+        tableBorders.insideV = borderSize;
+      }
+      if (!explicitlySetTableBorders.has('insideH')) {
+        tableBorders.insideH = borderSize;
+      }
     } else {
-      tableBorders.insideV = 0;
-      tableBorders.insideH = 0;
+      // Only reset inside borders if they weren't explicitly set by custom properties
+      if (!explicitlySetTableBorders.has('insideV')) {
+        tableBorders.insideV = 0;
+      }
+      if (!explicitlySetTableBorders.has('insideH')) {
+        tableBorders.insideH = 0;
+      }
       tableCellBorders.top = 1;
       tableCellBorders.bottom = 1;
       tableCellBorders.left = 1;
