@@ -1032,7 +1032,12 @@ const buildParagraph = async (vNode, attributes, docxDocumentInstance) => {
             let base64String;
             const imageSource = childVNode.properties.src;
             if (isValidUrl(imageSource)) {
-              base64String = await imageToBase64(imageSource).catch((error) => {
+              base64String = await Promise.race([
+                imageToBase64(imageSource),
+                new Promise((_, reject) =>
+                  setTimeout(() => reject(new Error('imageToBase64 timeout after 10s')), 10000)
+                ),
+              ]).catch((error) => {
                 // eslint-disable-next-line no-console
                 (console.warning || console.error)(
                   `skipping image ${imageSource} download and conversion due to ${error}`
@@ -1100,7 +1105,12 @@ const buildParagraph = async (vNode, attributes, docxDocumentInstance) => {
       const imageSource = vNode.properties.src;
       let base64String = imageSource;
       if (isValidUrl(imageSource)) {
-        base64String = await imageToBase64(imageSource).catch((error) => {
+        base64String = await Promise.race([
+          imageToBase64(imageSource),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('imageToBase64 timeout after 10s')), 10000)
+          ),
+        ]).catch((error) => {
           // eslint-disable-next-line no-console
           (console.warning || console.error)(
             `skipping image ${imageSource} download and conversion due to ${error}`
