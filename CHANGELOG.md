@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.16.7](https://github.com/chairuosen/html-to-docx/compare/v1.16.6...v1.16.7) (2025-12-19)
+
+
+### Bug Fixes
+
+* imageToBase64 timeout ([d7373a7](https://github.com/chairuosen/html-to-docx/commit/d7373a73cc9b84d72d30f4eaf933a7288d45a22c))
+
 ### [1.16.6](https://github.com/chairuosen/html-to-docx/compare/v1.16.5...v1.16.6) (2025-07-04)
 
 
