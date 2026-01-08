@@ -1075,6 +1075,8 @@ const buildParagraph = async (vNode, attributes, docxDocumentInstance) => {
           }
         } catch (e) {
           console.error(e);
+          // eslint-disable-next-line no-continue
+          continue;
         }
         const runOrHyperlinkFragments = await buildRunOrHyperLink(
           childVNode,
